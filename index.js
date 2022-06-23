@@ -2,10 +2,13 @@ import Jimp from "jimp";
 import { httpServer } from "./src/http_server/index.js";
 import robot from "robotjs";
 import { WebSocketServer } from "ws";
+import { drawCircle } from "./src/utils/drawCircle.js";
+import { drawSquare } from "./src/utils/drawSquare.js";
+import { drawRectangle } from "./src/utils/drawRectangle.js";
 
 const HTTP_PORT = 3000;
 
-console.log(`Start static http server on the ${HTTP_PORT} port!`);
+console.log(`Start static http server on the http://localhost:${HTTP_PORT}`);
 httpServer.listen(HTTP_PORT);
 
 const wss = new WebSocketServer({
@@ -14,7 +17,7 @@ const wss = new WebSocketServer({
 
 wss.on("connection", (ws) => {
   ws.on("message", (data) => {
-    const [command, argument] = data.toString().split(/\s/);
+    const [command, firstArg, secondArg] = data.toString().split(/\s/);
     const { x, y } = robot.getMousePos();
     console.log("command:", command);
 
@@ -22,20 +25,33 @@ wss.on("connection", (ws) => {
       ws.send(`mouse_position ${x},${y}`);
     }
     if (command === "mouse_right") {
-      const rightOffset = Number(argument);
+      const rightOffset = Number(firstArg);
       robot.moveMouse(x + rightOffset, y);
     }
     if (command === "mouse_left") {
-      const leftOffset = Number(argument);
+      const leftOffset = Number(firstArg);
       robot.moveMouse(x - leftOffset, y);
     }
     if (command === "mouse_down") {
-      const downOffset = Number(argument);
+      const downOffset = Number(firstArg);
       robot.moveMouse(x, y + downOffset);
     }
     if (command === "mouse_up") {
-      const upOffset = Number(argument);
+      const upOffset = Number(firstArg);
       robot.moveMouse(x, y - upOffset);
+    }
+    if (command === "draw_circle") {
+      const radius = firstArg;
+      drawCircle(radius);
+    }
+    if (command === "draw_square") {
+      const width = firstArg;
+      drawSquare(width);
+    }
+    if (command === "draw_rectangle") {
+      const width = firstArg;
+      const height = secondArg;
+      drawRectangle(width, height);
     }
   });
 });
